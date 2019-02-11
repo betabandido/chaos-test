@@ -1,0 +1,51 @@
+{
+    "version": "1.0.0",
+    "title": "What is the impact of terminating a pod",
+    "description": "If a pod gets terminated, application should still be accessible.",
+    "tags": ["pod"],
+    "steady-state-hypothesis": {
+        "title": "Application is accessible",
+        "probes": [
+            {
+                "name": "source service responds",
+                "type": "probe",
+                "tolerance": 0,
+                "provider": {
+                    "type": "process",
+                    "path": "python",
+                    "arguments": "measure.py http://192.168.64.14:31236 600"
+                }
+            }
+        ]
+    },
+    "method": [
+        {
+            "type": "action",
+            "name": "delete-sink-deployment",
+            "provider": {
+                "type": "python",
+                "module": "chaosk8s.actions",
+                "func": "kill_microservice",
+                "arguments": {
+                    "name": "sink",
+                    "ns": "default"
+                }
+            }
+        }
+    ],
+    "rollbacks": [
+        {
+            "type": "action",
+            "name": "create-sink-deployment",
+            "provider": {
+                "type": "python",
+                "module": "chaosk8s.actions",
+                "func": "start_microservice",
+                "arguments": {
+                    "spec_path": "../k8s/sink/deployment.yaml",
+                    "ns": "default"
+                }
+            }
+        }
+    ]
+}

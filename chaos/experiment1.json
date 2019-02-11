@@ -1,0 +1,44 @@
+{
+    "version": "1.0.0",
+    "title": "What is the impact of terminating a pod",
+    "description": "If a pod gets terminated, it should be recreated.",
+    "tags": ["pod"],
+    "steady-state-hypothesis": {
+        "title": "Services are all available and healthy",
+        "probes": [
+            {
+                "name": "all-our-microservices-should-be-healthy",
+                "type": "probe",
+                "tolerance": true,
+                "provider": {
+                    "type": "python",
+                    "module": "chaosk8s.probes",
+                    "func": "microservice_available_and_healthy",
+                    "arguments": {
+                        "name": "sink",
+                        "ns": "default"
+                    }
+                }
+            }
+        ]
+    },
+    "method": [
+        {
+            "type": "action",
+            "name": "terminate-sink-pod",
+            "provider": {
+                "type": "python",
+                "module": "chaosk8s.pod.actions",
+                "func": "terminate_pods",
+                "arguments": {
+                    "label_selector": "app=sink",
+                    "rand": true,
+                    "ns": "default"
+                }
+            },
+            "pauses": {
+                "after": 10
+            }
+        }
+    ]
+}

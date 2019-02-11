@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: source
+  labels:
+    app: source
+    name: source
+spec:
+  selector:
+    matchLabels:
+      app: source
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: source
+        name: source
+    spec:
+      containers:
+        - name: source
+          image: node:0.3
+          imagePullPolicy: Never
+          env:
+            - name: CHAOS_TEST_NEXT_NODE
+              value: http://middle
+          ports:
+            - name: flask
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: flask
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: flask
